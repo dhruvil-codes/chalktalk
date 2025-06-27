@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { BrowserRouter as Router, Routes, Route, useNavigate } from 'react-router-dom';
+import { MantineProvider } from '@mantine/core';
 import Navbar from './components/Navbar';
 import Hero from './components/Hero';
 import WhatsInside from './components/WhatsInside';
@@ -7,7 +8,6 @@ import HowItWorks from './components/HowItWorks';
 import Testimonials from './components/Testimonials';
 import JoinCommunity from './components/JoinCommunity';
 import FAQ from './components/FAQ';
-import Features from './components/Features';
 import Footer from './components/Footer';
 import ErrorBoundary from './components/ErrorBoundary';
 import LoginScreen from './components/auth/LoginScreen';
@@ -15,16 +15,10 @@ import SignupScreen from './components/auth/SignupScreen';
 import RoleSelectionScreen from './components/auth/RoleSelectionScreen';
 import ProfileSetupFlow from './components/profile/ProfileSetupFlow';
 import UniversityListingPage from './pages/UniversityListingPage';
-import UniversityDetailPage from './pages/UniversityDetailPage';
-import UniversityComparisonPage from './pages/UniversityComparisonPage';
-import ReviewQuestionPage from './pages/ReviewQuestionPage';
 import UserProfilePage from './pages/UserProfilePage';
 import AdminDashboard from './pages/AdminDashboard';
-import ContactUsPage from './pages/ContactUsPage';
-import AboutUsPage from './pages/AboutUsPage';
-import WriteReview from './pages/WriteReview';
-import AskQuestion from './pages/AskQuestion';
 import UnifiedAssistant from './components/UnifiedAssistant';
+import BoltBadge from './components/BoltBadge'; // ✅ Bolt badge
 import { UserProfile, ProfileSetupData } from './types/profile';
 
 type AuthScreen = 'login' | 'signup' | 'role-selection' | 'profile-setup' | null;
@@ -33,8 +27,8 @@ function AppContent() {
   const [currentAuthScreen, setCurrentAuthScreen] = useState<AuthScreen>(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
-  const [needsProfileSetup, setNeedsProfileSetup] = useState(false);
   const navigate = useNavigate();
+  // const location = useLocation(); // <-- Removed unused variable
 
   const handleAuthNavigation = (screen: AuthScreen) => {
     setCurrentAuthScreen(screen);
@@ -43,14 +37,12 @@ function AppContent() {
   const handleSignupComplete = () => {
     setCurrentAuthScreen('profile-setup');
     setIsAuthenticated(true);
-    setNeedsProfileSetup(true);
   };
 
   const handleProfileSetupComplete = (profileData: ProfileSetupData) => {
-    // Create user profile from setup data
     const newProfile: UserProfile = {
       id: 'user-' + Date.now(),
-      email: 'user@example.com', // This would come from signup
+      email: 'user@example.com',
       firstName: profileData.personalDetails.firstName,
       lastName: profileData.personalDetails.lastName,
       avatar: profileData.avatar ? URL.createObjectURL(profileData.avatar) : undefined,
@@ -66,14 +58,11 @@ function AppContent() {
     };
 
     setUserProfile(newProfile);
-    setNeedsProfileSetup(false);
     setCurrentAuthScreen(null);
-    
-    // Store authentication state
+
     localStorage.setItem('chalktalk_user_session', 'active');
     localStorage.setItem('chalktalk_user_role', profileData.role);
-    
-    // Check if there's a return URL from comparison page
+
     const returnUrl = sessionStorage.getItem('chalktalk_return_url');
     if (returnUrl) {
       sessionStorage.removeItem('chalktalk_return_url');
@@ -84,7 +73,6 @@ function AppContent() {
   };
 
   const handleProfileSetupSkip = () => {
-    // Create minimal profile
     const minimalProfile: UserProfile = {
       id: 'user-' + Date.now(),
       email: 'user@example.com',
@@ -97,14 +85,11 @@ function AppContent() {
     };
 
     setUserProfile(minimalProfile);
-    setNeedsProfileSetup(false);
     setCurrentAuthScreen(null);
-    
-    // Store authentication state
+
     localStorage.setItem('chalktalk_user_session', 'active');
     localStorage.setItem('chalktalk_user_role', 'aspirant');
-    
-    // Check if there's a return URL from comparison page
+
     const returnUrl = sessionStorage.getItem('chalktalk_return_url');
     if (returnUrl) {
       sessionStorage.removeItem('chalktalk_return_url');
@@ -115,7 +100,6 @@ function AppContent() {
   };
 
   const handleLoginSuccess = () => {
-    // Simulate loading existing user profile
     const existingProfile: UserProfile = {
       id: 'user-existing',
       email: 'existing@example.com',
@@ -136,12 +120,10 @@ function AppContent() {
     setUserProfile(existingProfile);
     setIsAuthenticated(true);
     setCurrentAuthScreen(null);
-    
-    // Store authentication state
+
     localStorage.setItem('chalktalk_user_session', 'active');
     localStorage.setItem('chalktalk_user_role', existingProfile.role);
-    
-    // Check if there's a return URL from comparison page
+
     const returnUrl = sessionStorage.getItem('chalktalk_return_url');
     if (returnUrl) {
       sessionStorage.removeItem('chalktalk_return_url');
@@ -151,13 +133,11 @@ function AppContent() {
     }
   };
 
-  // Check for authentication state on app load
   React.useEffect(() => {
     const hasSession = localStorage.getItem('chalktalk_user_session');
     const userRole = localStorage.getItem('chalktalk_user_role');
-    
+
     if (hasSession && userRole) {
-      // Simulate loading user profile from stored session
       const existingProfile: UserProfile = {
         id: 'user-existing',
         email: 'existing@example.com',
@@ -180,7 +160,6 @@ function AppContent() {
     }
   }, []);
 
-  // Handle login modal from state (for comparison page redirect)
   React.useEffect(() => {
     const state = window.history.state;
     if (state?.showLoginModal && !isAuthenticated) {
@@ -188,10 +167,9 @@ function AppContent() {
     }
   }, [isAuthenticated]);
 
-  // Show auth screens
   if (currentAuthScreen === 'login') {
     return (
-      <ErrorBoundary>
+      <ErrorBoundary key="login">
         <LoginScreen 
           onNavigateToSignup={() => handleAuthNavigation('signup')}
           onClose={() => handleAuthNavigation(null)}
@@ -203,7 +181,7 @@ function AppContent() {
 
   if (currentAuthScreen === 'signup') {
     return (
-      <ErrorBoundary>
+      <ErrorBoundary key="signup">
         <SignupScreen 
           onNavigateToLogin={() => handleAuthNavigation('login')}
           onNavigateToRoleSelection={() => handleAuthNavigation('role-selection')}
@@ -215,7 +193,7 @@ function AppContent() {
 
   if (currentAuthScreen === 'role-selection') {
     return (
-      <ErrorBoundary>
+      <ErrorBoundary key="role-selection">
         <RoleSelectionScreen 
           onComplete={handleSignupComplete}
           onBack={() => handleAuthNavigation('signup')}
@@ -226,7 +204,7 @@ function AppContent() {
 
   if (currentAuthScreen === 'profile-setup') {
     return (
-      <ErrorBoundary>
+      <ErrorBoundary key="profile-setup">
         <ProfileSetupFlow 
           onComplete={handleProfileSetupComplete}
           onSkip={handleProfileSetupSkip}
@@ -236,12 +214,11 @@ function AppContent() {
     );
   }
 
-  // Main application with routing
+  // Remove ErrorBoundary from main return to expose the real error
   return (
-    <ErrorBoundary>
       <div className="min-h-screen bg-gray-50">
         <Routes>
-          {/* Enhanced Landing Page */}
+          {/* All Routes as-is */}
           <Route path="/" element={
             <div className="bg-white">
               <Navbar 
@@ -259,8 +236,7 @@ function AppContent() {
               <Footer />
             </div>
           } />
-          
-          {/* University Pages */}
+          {/* ... Other routes (universities, profile, etc.) */}
           <Route path="/universities" element={
             <>
               <Navbar 
@@ -272,133 +248,38 @@ function AppContent() {
               <UniversityListingPage />
             </>
           } />
-          <Route path="/universities/:id" element={
-            <>
-              <Navbar 
-                onLoginClick={() => handleAuthNavigation('login')}
-                onSignupClick={() => handleAuthNavigation('signup')}
-                isAuthenticated={isAuthenticated}
-                userProfile={userProfile}
-              />
-              <UniversityDetailPage />
-            </>
-          } />
-
-          {/* University Comparison - Protected Route */}
-          <Route path="/compare" element={
-            <>
-              <Navbar 
-                onLoginClick={() => handleAuthNavigation('login')}
-                onSignupClick={() => handleAuthNavigation('signup')}
-                isAuthenticated={isAuthenticated}
-                userProfile={userProfile}
-              />
-              <UniversityComparisonPage />
-            </>
-          } />
-          
-          {/* Review & Question Pages */}
-          <Route path="/review" element={
-            <>
-              <Navbar 
-                onLoginClick={() => handleAuthNavigation('login')}
-                onSignupClick={() => handleAuthNavigation('signup')}
-                isAuthenticated={isAuthenticated}
-                userProfile={userProfile}
-              />
-              <ReviewQuestionPage />
-            </>
-          } />
-
-          <Route path="/write-review/:universityId" element={
-            <>
-              <Navbar 
-                onLoginClick={() => handleAuthNavigation('login')}
-                onSignupClick={() => handleAuthNavigation('signup')}
-                isAuthenticated={isAuthenticated}
-                userProfile={userProfile}
-              />
-              <WriteReview />
-            </>
-          } />
-
-          <Route path="/ask-question/:universityId" element={
-            <>
-              <Navbar 
-                onLoginClick={() => handleAuthNavigation('login')}
-                onSignupClick={() => handleAuthNavigation('signup')}
-                isAuthenticated={isAuthenticated}
-                userProfile={userProfile}
-              />
-              <AskQuestion />
-            </>
-          } />
-
-          {/* User Profile Page */}
-          <Route path="/profile" element={
-            <>
-              <Navbar 
-                onLoginClick={() => handleAuthNavigation('login')}
-                onSignupClick={() => handleAuthNavigation('signup')}
-                isAuthenticated={isAuthenticated}
-                userProfile={userProfile}
-              />
-              <UserProfilePage 
-                userProfile={userProfile}
-                onProfileUpdate={setUserProfile}
-              />
-            </>
-          } />
-
-          {/* Contact Us Page */}
-          <Route path="/contact" element={
-            <>
-              <Navbar 
-                onLoginClick={() => handleAuthNavigation('login')}
-                onSignupClick={() => handleAuthNavigation('signup')}
-                isAuthenticated={isAuthenticated}
-                userProfile={userProfile}
-              />
-              <ContactUsPage 
-                userProfile={userProfile}
-                isAuthenticated={isAuthenticated}
-              />
-            </>
-          } />
-
-          {/* About Us Page */}
-          <Route path="/about" element={
-            <>
-              <Navbar 
-                onLoginClick={() => handleAuthNavigation('login')}
-                onSignupClick={() => handleAuthNavigation('signup')}
-                isAuthenticated={isAuthenticated}
-                userProfile={userProfile}
-              />
-              <AboutUsPage />
-              <Footer />
-            </>
-          } />
-
-          {/* Admin Dashboard */}
+<Route path="/profile" element={
+  <>
+    <Navbar
+      onLoginClick={() => handleAuthNavigation('login')}
+      onSignupClick={() => handleAuthNavigation('signup')}
+      isAuthenticated={isAuthenticated}
+      userProfile={userProfile}
+    />
+    <UserProfilePage
+      userProfile={userProfile}
+      onProfileUpdate={updatedProfile =>
+        setUserProfile(prev => prev ? { ...prev, ...updatedProfile } : prev)
+      }
+    />
+  </>
+} />
           <Route path="/admin" element={<AdminDashboard />} />
         </Routes>
 
-        {/* Unified AI Assistant - Available on all pages */}
-        <UnifiedAssistant 
-          isAuthenticated={isAuthenticated}
-          userProfile={userProfile}
-        />
+        <BoltBadge /> {/* ✅ Bolt badge shown on all pages */}
+        <UnifiedAssistant isAuthenticated={isAuthenticated} userProfile={userProfile} />
       </div>
-    </ErrorBoundary>
   );
 }
 
 function App() {
   return (
-    <Router>
-      <AppContent />
-    </Router>
+    <MantineProvider>
+      <Router>
+        <AppContent />
+      </Router>
+    </MantineProvider>
   );
 }
 

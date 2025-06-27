@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { MessageCircle, Menu, X, User, Bell, ChevronDown, Trash2, Check, Clock, MessageSquare, Heart, UserPlus, AtSign, AlertCircle } from 'lucide-react';
 import { UserProfile } from '../types/profile';
@@ -217,12 +217,20 @@ export default function Navbar({ onLoginClick, onSignupClick, isAuthenticated = 
 
   const getUserDisplayName = () => {
     if (!userProfile) return 'Profile';
-    return `${userProfile.firstName} ${userProfile.lastName}`;
+    // Defensive: check for undefined firstName/lastName
+    const first = userProfile.firstName || '';
+    const last = userProfile.lastName || '';
+    if (!first && !last) return 'Profile';
+    return `${first} ${last}`.trim();
   };
 
   const getUserInitials = () => {
     if (!userProfile) return 'U';
-    return `${userProfile.firstName.charAt(0)}${userProfile.lastName.charAt(0)}`;
+    // Defensive: check for undefined firstName/lastName
+    const first = userProfile.firstName || '';
+    const last = userProfile.lastName || '';
+    if (!first && !last) return 'U';
+    return `${first.charAt(0)}${last.charAt(0)}`.toUpperCase();
   };
 
   return (
